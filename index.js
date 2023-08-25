@@ -1,58 +1,84 @@
-const parser = require('@babel/parser');
-const traverse = require('@babel/traverse').default;
-const fs = require('fs');
+const filePath = 'test1'; // Path to your React project directoryconst DataCollector = e
+const DataCollector = require('./DataCollector')
 const path = require('path');
-const searchDirectory = 'C://Users//suvel.ratneswar//Desktop//temp//dep_finder//cute-god-react'; // Path to your React project directory
+const fs = require('fs');
+const writeArrayToJsonFile = require('./utility/functions').writeArrayToJsonFile;
+const readJsonFile = require('./utility/functions').readJsonFile;
+readJsonFile
+// traverseDirectory(searchDirectory);
 
-function traverseDirectory(directoryPath) {
-    const files = fs.readdirSync(directoryPath);
+let optimized = 1;
+let useExistingData = 0;
 
-    for (const file of files) {
-        const filePath = path.join(directoryPath, file);
-        const stats = fs.statSync(filePath);
+let data;
+if (!useExistingData) {
+  const projectDirectory = path.join(__dirname, filePath);
+  const nodes = new DataCollector(projectDirectory);
+  data = nodes;
+  if (optimized) {
+    writeArrayToJsonFile(nodes, 'outputSample1.json')
+  }
+}
+if (useExistingData) {
+  data = readJsonFile('outputSample1.json')
+}
 
-        if (stats.isDirectory()) {
-            traverseDirectory(filePath);
-        } else if (stats.isFile() && (path.extname(filePath) === '.js' || path.extname(filePath) === '.jsx')) {
-            analyzeFile(filePath,'function','handelChangeGod');
+const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Network</title>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+    <style type="text/css">
+      #mynetwork {
+        width: 100vw;
+        height: 100vh;
+        border: 1px solid lightgray;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="mynetwork"></div>
+    <script type="text/javascript">
+      const data1 =  ${JSON.stringify(data)};
+
+      const nodes = new vis.DataSet();
+      const edges = new vis.DataSet();
+
+      for (const [nodeName, nodeAttributes] of data1) {
+        let backgroundColor = '#00ff4c';
+        if(nodeAttributes.parentName)backgroundColor = '#FFD000'
+        nodes.add({
+          id: nodeName,
+          label: nodeName,
+          borderWidth:nodeAttributes?.borderWidth||1,
+          color: {
+            background: nodeAttributes?.background || backgroundColor,
+          },
+        });
+        if (nodeAttributes.parentName) {
+          edges.add({ from: nodeAttributes.parentName, to: nodeName });
         }
-    }
-}
+      }
 
-function analyzeFile(filePath, type, searchText) {
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
+      // create a network
+      var container = document.getElementById('mynetwork');
+      var data = {
+        nodes: nodes,
+        edges: edges,
+      };
+      var options = {};
+      var network = new vis.Network(container, data, options);
+    </script>
+  </body>
+</html>
+`;
 
-    try {
-        const ast = parser.parse(fileContent, {
-            sourceType: 'module',
-            plugins: ['jsx'],
-        });
+const htmlFilePath = path.join(__dirname, 'dynamicPage.html');
+fs.writeFileSync(htmlFilePath, htmlContent);
 
-        traverse(ast, {
-            JSXElement(path) {
-                if (type === 'component' && path.node.openingElement.name.name === searchText) {
-                    console.log(`Found Button component usage in: ${filePath}`);
-                }
-            },
-            FunctionDeclaration(path) {
-                if (type === 'function' && path.node.id.name === searchText) {
-                    console.log(`Found function usage in: ${filePath}`);
-                }
-            },
-            FunctionExpression(path) {
-                if (type === 'function' && path.parent.id && path.parent.id.name === searchText) {
-                    console.log(`Found function usage in: ${filePath}`);
-                }
-            },
-            ArrowFunctionExpression(path) {
-                if (type === 'function' && path.parent.id && path.parent.id.name === searchText) {
-                    console.log(`Found function usage in: ${filePath}`);
-                }
-            },
-        });
-    } catch (error) {
-        console.error(`Error analyzing ${filePath}: ${error.message}`);
-    }
-}
-
-traverseDirectory(searchDirectory);
+const { exec } = require('child_process');
+exec(`start ${htmlFilePath}`);
