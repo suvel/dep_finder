@@ -4,4 +4,8 @@
 
 ⏩.. We will relating root with other component, forming a tree to visualize.
 
+## Log till 01/09/2023
+
+😎 We were able to visualize the graph from test1 , now we improve the the compatibility with adding routing. TEST2 is the next mile stone 🗻.
+
 
