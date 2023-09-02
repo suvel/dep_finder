@@ -24,6 +24,8 @@ class DataCollector {
     }
     addToComponentNode(componentName, option) {
         if (!componentName) return
+        // below check to ignore the unnecessary node for the system
+        if (componentName === "Navigate" || componentName === "Route") return
         if (this.componentNode.has(componentName) && this.componentNode?.get(componentName)?.parentName) {
             this.notifyAsDuplicate(componentName);
             return;
