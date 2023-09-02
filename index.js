@@ -23,6 +23,25 @@ if (useExistingData) {
   data = readJsonFile('outputSample1.json')
 }
 
+const parentSet = new Set();
+
+data?.forEach((component) => {
+  const compName = component[1]?.parentName;
+  if (compName)
+    parentSet.add(component[1].parentName)
+});
+
+const parentComponents = Array.from(parentSet);
+
+data?.forEach((comp, index) => {
+  if (!parentComponents.includes(comp[0])) {
+    data[index][1].leaf = true;
+  }
+  return data[index];
+});
+
+console.log(data)
+
 const htmlContent = `
 <!DOCTYPE html>
 <html lang="en">
@@ -50,7 +69,7 @@ const htmlContent = `
 
       for (const [nodeName, nodeAttributes] of data1) {
         let backgroundColor = '#00ff4c';
-        if(nodeAttributes.parentName)backgroundColor = '#FFD000'
+        if(nodeAttributes.leaf)backgroundColor = '#FFD000'
         nodes.add({
           id: nodeName,
           label: nodeName,
