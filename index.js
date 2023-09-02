@@ -8,7 +8,7 @@ var uniqid = require('uniqid');
 // traverseDirectory(searchDirectory);
 
 let optimized = 1;
-let useExistingData = 0;
+let useExistingData = 1;
 
 let data;
 if (!useExistingData) {
@@ -64,7 +64,23 @@ const htmlContent = `
     </style>
   </head>
   <body>
+    <input  id="ST" type="text" placeholder="search component by name"/>
+    <button onclick="focusNode()">Search</button>
+    </div>
     <div id="mynetwork"></div>
+    <script>
+      function focusNode() {
+      const searchedId = data1?.find(itm=>{
+        if(itm[1]?.name === document.getElementById("ST").value )return true;
+        return false;
+      })
+      if(searchedId?.[0])network.focus(searchedId?.[0],{     scale: 2, // You can adjust the zoom level as needed
+      animation: {
+      duration: 1000, // Animation duration in milliseconds
+      easingFunction: 'easeInOutQuart', // You can choose a different easing function
+      },})
+      }
+    </script>
     <script type="text/javascript">
       const data1 =  ${JSON.stringify(data)};
 
