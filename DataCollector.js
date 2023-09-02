@@ -134,24 +134,21 @@ class DataCollector {
                         self.addToComponentNode(componentName)
                     }
                 },
-                JSXOpeningElement(path) {
-                    if (path.node.name.name === 'Route') {
-                        let componentName;
-                        let routePath;
-                        const patElement = path.node.attributes.find(attr => attr.name.name === 'element');
-                        const pathAttribute = path.node.attributes.find(attr => attr.name.name === 'path');
-                        if (patElement) {
-                            componentName = patElement.value.expression.openingElement.name.name;
+                JSXElement(path) {
+                    if (path.node.openingElement.name.name === 'Routes') {
+                        self.addToComponentNode('Routes', { parentName: "App" });
+                    }
+                    else if (path.node.openingElement.name.name === 'Route' && path.node.openingElement.selfClosing === true) {
+                        let componentName = null;
+                        const elementAtt = path.node.openingElement.attributes.find(attr => attr.name.name === 'element');
+                        if (elementAtt) {
+                            componentName = elementAtt.value.expression.openingElement.name.name;
                         }
-                        if (pathAttribute) {
-                            routePath = pathAttribute.value.value;
-                        }
+                        //Account directly routed component and its relation
                         self.addToComponentNode(componentName, { parentName: "Routes" });
                     }
-                },
-                JSXElement(path) {
-                    if (path.node.openingElement.name.name === 'Route' && path.node.openingElement.selfClosing === false) {
-                        let parentWrapperComponentName;
+                    else if (path.node.openingElement.name.name === 'Route' && path.node.openingElement.selfClosing === false) {
+                        let parentWrapperComponentName = null;
                         const parentElementAtt = path.node.openingElement.attributes.find(attr => attr.name.name === 'element');
                         if (parentElementAtt) {
                             parentWrapperComponentName = parentElementAtt.value.expression.openingElement.name.name;
@@ -171,9 +168,12 @@ class DataCollector {
                                 if (pathAtt) {
                                     routePath = pathAtt.value.value;
                                 }
+                                // Account Wrapper's children components and its relation
                                 self.addToComponentNode(componentName, { parentName: parentWrapperComponentName });
                             }
                         });
+                        // Account Wrapper component and its relation
+                        self.addToComponentNode(parentWrapperComponentName, { parentName: "Routes" });
                     }
                 },
             });
