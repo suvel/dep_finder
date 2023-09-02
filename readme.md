@@ -10,4 +10,4 @@
 
 
 ### Side Notes
-- Need to test multiple parent cases.
+- Need to test component with multiple parent cases.
