@@ -10,5 +10,4 @@
 
 
 ### Side Notes
-- Color the component with children , need to be different color
 - Need to test component with multiple parent cases.
