@@ -13,23 +13,18 @@ class DataCollector {
     constructor(sourcePath) {
         this.process = withTryCatch(this.process.bind(this));
         this.analyzeFile = withTryCatch(this.analyzeFile.bind(this));
-        this.componentNode = new Map();
+        this.componentNode = [];
         this.process(sourcePath);
         const nodeList = this.getComponentNode()
         return nodeList;
     }
     getComponentNode() {
         if (!this.componentNode) return [];
-        return Array.from(this.componentNode.entries());
+        return Array.from(this.componentNode);
     }
     addToComponentNode(componentName, option) {
         if (!componentName) return
         // below check to ignore the unnecessary node for the system
-        if (componentName === "Navigate" || componentName === "Route") return
-        if (this.componentNode.has(componentName) && this.componentNode?.get(componentName)?.parentName) {
-            this.notifyAsDuplicate(componentName);
-            return;
-        }
         let type = 'main_component';
         let parentName = option?.parentName;
         let background;
@@ -42,7 +37,10 @@ class DataCollector {
             border = "#000000";
             borderWidth = 3;
         }
-        this.componentNode.set(componentName, { type, parentName: parentName, background, border, borderWidth })
+        this.componentNode = [...this.componentNode, [
+            componentName,
+            { type, parentName: parentName, background, border, borderWidth }
+        ]]
     }
     notifyAsDuplicate(componentName) {
         //🔔 A ringer to notify us to improve 
@@ -71,7 +69,7 @@ class DataCollector {
             if (path.node.type === "JSXElement") {
                 const openingElement = path.node.openingElement;
                 if (checkIfValidReactComponent(openingElement.name.name)) {
-                    let currentParentName = self.componentNode?.get(openingElement.name.name);
+                    let currentParentName;
                     if (parentName) currentParentName = parentName;
                     self.addToComponentNode(openingElement.name.name, { parentName: currentParentName })
                 }
@@ -150,7 +148,12 @@ class DataCollector {
                         self.addToComponentNode(componentName, { parentName: "Routes" });
                     }
                     else if (path.node.openingElement.name.name === 'Route' && path.node.openingElement.selfClosing === false) {
-                        let parentWrapperComponentName = null;
+                        const functionDeclaration = path.findParent(
+                            (p) =>
+                                p.isFunctionDeclaration() || p.isArrowFunctionExpression()
+                        );
+                        const parentName = getComponentDeclaration(functionDeclaration);
+                        let parentWrapperComponentName = parentName;
                         const parentElementAtt = path.node.openingElement.attributes.find(attr => attr.name.name === 'element');
                         if (parentElementAtt) {
                             parentWrapperComponentName = parentElementAtt.value.expression.openingElement.name.name;

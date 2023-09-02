@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const writeArrayToJsonFile = require('./utility/functions').writeArrayToJsonFile;
 const readJsonFile = require('./utility/functions').readJsonFile;
-readJsonFile
+var uniqid = require('uniqid');
 // traverseDirectory(searchDirectory);
 
 let optimized = 1;
@@ -24,7 +24,6 @@ if (useExistingData) {
 }
 
 const parentSet = new Set();
-
 data?.forEach((component) => {
   const compName = component[1]?.parentName;
   if (compName)
@@ -37,10 +36,15 @@ data?.forEach((comp, index) => {
   if (!parentComponents.includes(comp[0])) {
     data[index][1].leaf = true;
   }
+  data[index][1].name = data[index][0];
+  data[index][0] = uniqid();
   return data[index];
 });
 
-console.log(data)
+data = data?.filter(itm => {
+  if (itm[1]?.name === 'App') return true;
+  return itm[1]?.parentName;
+})
 
 const htmlContent = `
 <!DOCTYPE html>
@@ -67,19 +71,24 @@ const htmlContent = `
       const nodes = new vis.DataSet();
       const edges = new vis.DataSet();
 
-      for (const [nodeName, nodeAttributes] of data1) {
+      for (const [nodeId, nodeAttributes] of data1) {
         let backgroundColor = '#00ff4c';
-        if(nodeAttributes.leaf)backgroundColor = '#FFD000'
+        if (nodeAttributes.leaf) backgroundColor = '#FFD000';
         nodes.add({
-          id: nodeName,
-          label: nodeName,
-          borderWidth:nodeAttributes?.borderWidth||1,
+          id: nodeId,
+          label: nodeAttributes?.name,
+          borderWidth: nodeAttributes?.borderWidth || 1,
           color: {
             background: nodeAttributes?.background || backgroundColor,
           },
         });
         if (nodeAttributes.parentName) {
-          edges.add({ from: nodeAttributes.parentName, to: nodeName });
+          const parentData = data1.find(itm=>{
+            if(itm[1]?.name === nodeAttributes.parentName) return true;
+            return false;
+          })
+          const parentID = parentData?.[0]||null;
+          edges.add({ from: parentID, to: nodeId });
         }
       }
 
