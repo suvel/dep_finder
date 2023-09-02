@@ -1,4 +1,4 @@
-const filePath = 'test1'; // Path to your React project directoryconst DataCollector = e
+const filePath = 'test2'; // Path to your React project directoryconst DataCollector = e
 const DataCollector = require('./DataCollector')
 const path = require('path');
 const fs = require('fs');

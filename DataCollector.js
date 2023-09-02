@@ -68,8 +68,11 @@ class DataCollector {
         function checkAndAddComponent(path, parentName) {
             if (path.node.type === "JSXElement") {
                 const openingElement = path.node.openingElement;
-                if (checkIfValidReactComponent(openingElement.name.name))
-                    self.addToComponentNode(openingElement.name.name, { parentName })
+                if (checkIfValidReactComponent(openingElement.name.name)) {
+                    let currentParentName = self.componentNode?.get(openingElement.name.name);
+                    if(parentName) currentParentName = parentName;
+                    self.addToComponentNode(openingElement.name.name, { parentName:currentParentName })
+                }
             }
         }
 
@@ -129,6 +132,21 @@ class DataCollector {
                     ) {
                         const componentName = getComponentDeclaration(path);
                         self.addToComponentNode(componentName)
+                    }
+                },
+                JSXOpeningElement(path) {
+                    if (path.node.name.name === 'Route') {
+                        let componentName;
+                        let routePath;
+                        const patElement = path.node.attributes.find(attr => attr.name.name === 'element');
+                        const pathAttribute = path.node.attributes.find(attr => attr.name.name === 'path');
+                        if (patElement) {
+                            componentName = patElement.value.expression.openingElement.name.name;
+                        }
+                        if (pathAttribute) {
+                            routePath = pathAttribute.value.value;
+                        }
+                        self.addToComponentNode(componentName, {parentName:"Routes"});
                     }
                 }
             });
