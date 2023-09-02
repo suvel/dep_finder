@@ -70,8 +70,8 @@ class DataCollector {
                 const openingElement = path.node.openingElement;
                 if (checkIfValidReactComponent(openingElement.name.name)) {
                     let currentParentName = self.componentNode?.get(openingElement.name.name);
-                    if(parentName) currentParentName = parentName;
-                    self.addToComponentNode(openingElement.name.name, { parentName:currentParentName })
+                    if (parentName) currentParentName = parentName;
+                    self.addToComponentNode(openingElement.name.name, { parentName: currentParentName })
                 }
             }
         }
@@ -146,9 +146,36 @@ class DataCollector {
                         if (pathAttribute) {
                             routePath = pathAttribute.value.value;
                         }
-                        self.addToComponentNode(componentName, {parentName:"Routes"});
+                        self.addToComponentNode(componentName, { parentName: "Routes" });
                     }
-                }
+                },
+                JSXElement(path) {
+                    if (path.node.openingElement.name.name === 'Route' && path.node.openingElement.selfClosing === false) {
+                        let parentWrapperComponentName;
+                        const parentElementAtt = path.node.openingElement.attributes.find(attr => attr.name.name === 'element');
+                        if (parentElementAtt) {
+                            parentWrapperComponentName = parentElementAtt.value.expression.openingElement.name.name;
+                        }
+                        const children = path.node.children;
+                        const jsxElement = children.filter(node => node.type === 'JSXElement');
+                        jsxElement.forEach(node => {
+                            if (path.node.openingElement.name.name === 'Route') {
+                                let componentName;
+                                let routePath;
+                                const attributes = node.openingElement.attributes
+                                const elementAtt = attributes.find(attr => attr.name.name === 'element');
+                                const pathAtt = attributes.find(attr => attr.name.name === 'path');
+                                if (elementAtt) {
+                                    componentName = elementAtt.value.expression.openingElement.name.name;
+                                }
+                                if (pathAtt) {
+                                    routePath = pathAtt.value.value;
+                                }
+                                self.addToComponentNode(componentName, { parentName: parentWrapperComponentName });
+                            }
+                        });
+                    }
+                },
             });
         } catch (error) {
             throw error;
