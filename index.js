@@ -3,8 +3,9 @@ const fs = require('fs');
 const getData = require('./getData');
 const sanitiesAndParseForGraphing = require('./sanitiesAndParseForGraphing');
 
-const filePath = 'test4'; // Path to your React project
-let data = getData(filePath, { optimized: 1, useExistingData: 0 });
+ const filePath = 'test5'; // Path to your React project
+let data = getData(filePath, { optimized: 1, useExistingData: 0, absolutePath: false });
+
 data = sanitiesAndParseForGraphing(data);
 
 const htmlContent = `
@@ -75,7 +76,64 @@ const htmlContent = `
         nodes: nodes,
         edges: edges,
       };
-      var options = {};
+      var options = {
+        groups: {
+          failure: {
+              color: {
+                  background: 'red'
+              }
+          },
+          state: {
+              color: {
+                  background: 'lime'
+              }
+          },
+          startstate: {
+              font: {
+                  size: 33,
+                  color: 'white'
+              },
+              color: {
+                  background: 'blueviolet'
+              }
+          },
+          finalstate: {
+              font: {
+                  size: 33,
+                  color: 'white'
+              },
+              color: {
+                  background: 'blue'
+              }
+          }
+      },
+      edges: {
+          arrows: {
+              to: {
+                  enabled: true
+              }
+          },
+          smooth: {
+              enabled: false,
+              type: 'continuous'
+          }
+      },
+      physics: {
+          adaptiveTimestep: true,
+          barnesHut: {
+              gravitationalConstant: -8000,
+              springConstant: 0.04,
+              springLength: 95
+          },
+          stabilization: {
+              iterations: 987
+          }
+      },
+      layout: {
+          randomSeed: 191006,
+          improvedLayout: true
+      }
+      };
       var network = new vis.Network(container, data, options);
     </script>
   </body>

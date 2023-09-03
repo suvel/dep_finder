@@ -65,9 +65,23 @@ class DataCollector {
             return _string[0] === _string[0].toUpperCase();
         }
 
+        function checkAlreadyExist(componentName, parentName) {
+            let alreadyExist = false;
+            self.componentNode?.every(node => {
+                if (node[0] === componentName && node[1]?.parentName === parentName) {
+                    alreadyExist = true;
+                    return false;
+                }
+                return true;
+            })
+            return alreadyExist;
+        }
+
         function checkAndAddComponent(path, parentName) {
-            if (path.node.type === "JSXElement") {
-                const openingElement = path.node.openingElement;
+            const node = path?.node || path;
+            if (node?.type === "JSXElement") {
+                const openingElement = node.openingElement;
+                if (checkAlreadyExist(openingElement.name.name, parentName)) return;
                 if (checkIfValidReactComponent(openingElement.name.name)) {
                     let currentParentName;
                     if (parentName) currentParentName = parentName;
@@ -93,6 +107,26 @@ class DataCollector {
             }
         }
 
+        const handelNestedComponents = (path, parentName) => {
+            if (
+                path?.type === 'JSXElement'
+            ) {
+                const node = path?.node || path;
+                const children = node?.children;
+                if (!children || children?.length == 0) {
+                    checkAndAddComponent(path, parentName);
+                    return;
+                };
+                let currentParentName = parentName;
+                currentParentName = node?.openingElement?.name?.name;
+                children.forEach(v => {
+                    handelNestedComponents(v, currentParentName)
+                    checkAndAddComponent(path, parentName);
+                });
+            }
+            return;
+        }
+
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         try {
             const ast = parser.parse(fileContent, {
@@ -110,10 +144,14 @@ class DataCollector {
                     if (argument.isJSXElement()) {
                         const children = argument.get("children");
                         if (children.length > 0) {
-                            children.forEach(v => checkAndAddComponent(v, parentName));
+                            children.forEach(v => {
+                                handelNestedComponents(v, parentName);
+                            });
                         }
                     } else if (argument.isJSXFragment()) {
-                        argument.get("children").forEach(v => checkAndAddComponent(v, parentName));
+                        argument.get("children").forEach(v => {
+                            handelNestedComponents(v, parentName);
+                        });
                     }
                 },
                 FunctionDeclaration(path) {
