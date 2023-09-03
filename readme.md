@@ -11,4 +11,5 @@
 
 ### Side Notes
 - nested Components.
+    - Child of a common component having issue
 - this syntax is breaking return(<jsx>)
