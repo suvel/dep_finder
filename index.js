@@ -1,50 +1,11 @@
-const filePath = 'test4'; // Path to your React project directoryconst DataCollector = e
-const DataCollector = require('./DataCollector')
 const path = require('path');
 const fs = require('fs');
-const writeArrayToJsonFile = require('./utility/functions').writeArrayToJsonFile;
-const readJsonFile = require('./utility/functions').readJsonFile;
-var uniqid = require('uniqid');
-// traverseDirectory(searchDirectory);
+const getData = require('./getData');
+const sanitiesAndParseForGraphing = require('./sanitiesAndParseForGraphing');
 
-let optimized = 1;
-let useExistingData = 1;
-
-let data;
-if (!useExistingData) {
-  const projectDirectory = path.join(__dirname, filePath);
-  const nodes = new DataCollector(projectDirectory);
-  data = nodes;
-  if (optimized) {
-    writeArrayToJsonFile(nodes, 'outputSample1.json')
-  }
-}
-if (useExistingData) {
-  data = readJsonFile('outputSample1.json')
-}
-
-const parentSet = new Set();
-data?.forEach((component) => {
-  const compName = component[1]?.parentName;
-  if (compName)
-    parentSet.add(component[1].parentName)
-});
-
-const parentComponents = Array.from(parentSet);
-
-data?.forEach((comp, index) => {
-  if (!parentComponents.includes(comp[0])) {
-    data[index][1].leaf = true;
-  }
-  data[index][1].name = data[index][0];
-  data[index][0] = uniqid();
-  return data[index];
-});
-
-data = data?.filter(itm => {
-  if (itm[1]?.name === 'App') return true;
-  return itm[1]?.parentName;
-})
+const filePath = 'test4'; // Path to your React project
+let data = getData(filePath, { optimized: 1, useExistingData: 0 });
+data = sanitiesAndParseForGraphing(data);
 
 const htmlContent = `
 <!DOCTYPE html>
@@ -82,7 +43,7 @@ const htmlContent = `
       }
     </script>
     <script type="text/javascript">
-      const data1 =  ${JSON.stringify(data)};
+      var data1 =  ${JSON.stringify(data)};
 
       const nodes = new vis.DataSet();
       const edges = new vis.DataSet();
