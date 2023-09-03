@@ -3,7 +3,7 @@ const fs = require('fs');
 const getData = require('./getData');
 const sanitiesAndParseForGraphing = require('./sanitiesAndParseForGraphing');
 
- const filePath = 'test5'; // Path to your React project
+ const filePath = 'test6'; // Path to your React project
 let data = getData(filePath, { optimized: 1, useExistingData: 0, absolutePath: false });
 
 data = sanitiesAndParseForGraphing(data);
